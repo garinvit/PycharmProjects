@@ -114,6 +114,7 @@ def add_new_doc():
     new_doc_type = input('Введите тип документа - ')
     new_doc_owner_name = input('Введите имя владельца документа- ')
     new_doc_shelf_number = input('Введите номер полки для хранения - ')
+    test_num = 11
     new_doc = {
         "type": new_doc_type,
         "number": new_doc_number,
