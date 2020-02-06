@@ -5,24 +5,32 @@ connect_db = psycopg2.connect("dbname=netology_db user=netology")
 cur = connect_db.cursor()
 
 students = [
-    {'id': 1, 'name': 'Иванов Иван', 'gpa': 119, 'birth': '1998-02-03'},
-    {'id': 2, 'name': 'Петров Петр', 'gpa': 319, 'birth': '1999-03-04'},
-    {'id': 3, 'name': 'Иванов Петр', 'gpa': 119, 'birth': '2000-04-05'},
+    {'id': 1, 'name': 'Иванов Иван', 'gpa': 4, 'birth': '1998-02-03'},
+    {'id': 2, 'name': 'Петров Петр', 'gpa': 4.5, 'birth': '1999-03-04'},
+    {'id': 3, 'name': 'Иванов Петр', 'gpa': 4.2, 'birth': '2000-04-05'},
 ]
-student =  {'id': 4, 'name': 'Другой Студент', 'gpa': 319, 'birth': '1999-11-11'}
+student =  {'id': 4, 'name': 'Другой Студент', 'gpa': 3.9, 'birth': '1999-11-11'}
 
 def create_db(): # создает таблицы
     cur.execute("""
     CREATE TABLE student (
-    id integer PRIMARY KEY not null, 
+    id serial PRIMARY KEY not null, 
     name varchar(100) not null, 
     gpa numeric(10, 2), 
     birth timestamp with time zone);
     
     CREATE TABLE course (
-    id integer not null, 
+    id serial primary key  not null, 
     name varchar(100) not null,
-    primary key (id, name)); 
+    primary key (id, name));
+    
+    CREATE TABLE student_course (
+    id serial primary key  not null, 
+    name varchar(100) not null,
+    primary key (id, name))
+    birth timestamp;
+    
+     
     """)
     connect_db.commit()
 
