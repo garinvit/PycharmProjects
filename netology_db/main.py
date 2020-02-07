@@ -92,11 +92,11 @@ def get_student(student_id):
 
 
 def main():
-    create_db()
-    add_courses(courses)
-    add_students(1, students)
-    add_student(student)
-    get_student('2')
+    # create_db()
+    # add_courses(courses)
+    # add_students(1, students)
+    # add_student(student)
+    # get_student('2')
     get_students(1)
 
 if __name__ == "__main__":
