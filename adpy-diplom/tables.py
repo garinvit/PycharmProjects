@@ -1,12 +1,13 @@
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, Boolean, String, Date, create_engine
 
 
-# вспомогательныесущности
 Base = declarative_base()
 engine = create_engine('postgresql://test:test@localhost/vk_db')
+if not database_exists(engine.url):
+    create_database(engine.url)
 Session =sessionmaker(bind=engine)
 session =Session()
 
@@ -39,7 +40,11 @@ class User(Base):
 def add_user(**kwargs):
 
     user = User(**kwargs)
-    session.add(user)
-    session.commit()
+    try:
+        session.add(user)
+        session.commit()
+    except:
+        session.rollback()
+        print("Уже есть")
 
 create_all(engine)

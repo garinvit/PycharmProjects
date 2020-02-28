@@ -1,0 +1,11 @@
+var uids = %s;
+var end = %s;
+var start = 0;
+var mf = [];
+var resp;
+while (start != end){
+    resp = API.friends.getMutual({"target_uid":uids[start]});
+    mf.push(resp);
+    start = start+1;
+};
+return mf;
