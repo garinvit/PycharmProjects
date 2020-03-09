@@ -8,12 +8,13 @@ Base = declarative_base()
 engine = create_engine('postgresql://test:test@localhost/vk_db')
 if not database_exists(engine.url):
     create_database(engine.url)
-Session =sessionmaker(bind=engine)
-session =Session()
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 def create_all(engine):
     Base.metadata.create_all(engine)
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -36,15 +37,17 @@ class User(Base):
     books = Column(String())
     mutual_friend = Column(Integer())
     score = Column(Float)
+    call_id = Column(Integer())
+
 
 def add_user(**kwargs):
-
     user = User(**kwargs)
     try:
         session.add(user)
         session.commit()
     except:
         session.rollback()
-        print("Уже есть")
+        print("Такой человек уже есть в базе данных")
+
 
 create_all(engine)

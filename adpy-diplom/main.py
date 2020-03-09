@@ -5,25 +5,26 @@ import json
 
 
 oauth_url = 'https://oauth.vk.com/authorize?client_id=7230720&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline,friends&response_type=token&v=5.103'
-token =  # в комментариях к работе
+token = # в комментариях к работе
 vk = vk_api.VkApi(token=token)
 api = vk.get_api()
 
+
 def user_info():
     info = api.users.get(fields='sex, bdate, books, city, education, interests, movies, music, personal')[0]
-    # print(info)
     info['return'] = 1
+    # print(info)
     info = edit_keys(**info)
-    print(info)
+    # print(info)
     info['age_from'], info['age_to'] = map(int, input('Введите диапазон возраста для поиска. Например: 22-27').split('-'))
     if info.get('city'):
         if input('Искать в городе который указан в профиле?Y/n').lower() in ['n', 'no', 'not', 'н', 'нет', 'не', '-']:
             info['city'] = api.database.getCities(country_id=1, q=input('Введите название города?'))['items'][0]['id']
     else:
             info['city'] = api.database.getCities(country_id=1, q=input('Введите название города?'))['items'][0]['id']
-    if info['sex'] == 2:
+    if info.get('sex') == 2:
         info['search_sex'] = 1
-    elif info['sex'] == 1:
+    elif info.get('sex') == 1:
         info['search_sex'] = 2
     empty_rec = []
     for rec in ['political', 'religion', 'people_main', 'life_main', 'smoking', 'alcohol']:
@@ -128,7 +129,7 @@ def edit_keys(**kwargs):
 
 
 def search_exc(**user_info):
-    search = api.users.search(count=1000, city=user_info['city'], age_from=user_info['age_from'], age_to=user_info['age_to'], is_closed=False,\
+    search = api.users.search(count=1000, status=6, city=user_info['city'], age_from=user_info['age_from'], age_to=user_info['age_to'], is_closed=False,\
                     fields='sex, bdate, books, city, education, interests, movies, music, personal', sex=user_info['search_sex'])['items']
     print(len(search))
     for start in range(0,len(search),25):
@@ -145,6 +146,7 @@ def search_exc(**user_info):
             inf = search[index]
             inf = edit_keys(**inf)
             inf['mutual_friend'] = len(mutual_friend[mut_index])
+            inf['call_id'] = user_info['id']
             score = 0
             score += inf['mutual_friend']*0.3
             if (inf.get('university') == user_info.get('university')) is True:
@@ -218,7 +220,9 @@ def top_photos(uid):
 
 
 def top_search(number=10):
-    users_by_score = session.query(User).order_by(User.score.desc()).all()
+    print('Вычисляем результат')
+    call_id = api.users.get()[0]['id']
+    users_by_score = session.query(User).filter_by(call_id=call_id).order_by(User.score.desc()).all()
     result = []
     for num, user in enumerate(users_by_score):
         if num == number:
@@ -229,14 +233,16 @@ def top_search(number=10):
             'score': user.score,
             'top_photos': top_photos(user.id)
         })
-    with open("result.json", "w", encoding="utf-8") as file:
+    file_name = f'result_{call_id}.json'
+    with open(file_name, "w", encoding="utf-8") as file:
         json.dump({'result': result}, file)
+        print(f'Результат в файле {file_name}')
     return result
 
 
 def main():
     inf = user_info()
-    print(inf)
+    # print(inf)
     search_exc(**inf)
     top_search()
 
