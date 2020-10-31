@@ -5,7 +5,7 @@ import json
 
 
 oauth_url = 'https://oauth.vk.com/authorize?client_id=7230720&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline,friends&response_type=token&v=5.103'
-token = # в комментариях к работе
+token = ''# в комментариях к работе
 vk = vk_api.VkApi(token=token)
 api = vk.get_api()
 
@@ -13,10 +13,21 @@ api = vk.get_api()
 def user_info():
     info = api.users.get(fields='sex, bdate, books, city, education, interests, movies, music, personal')[0]
     info['return'] = 1
-    # print(info)
     info = edit_keys(**info)
-    # print(info)
+    # очистка БД по желанию пользователя
+    call_id = api.users.get()[0]['id']
+    call_id_list = session.query(User).filter_by(call_id=call_id)
+    if call_id_list.all():
+        print("Для вашего профиля уже есть данные в БД")
+        answer = input('Хотите очистить БД?Y/n').lower()
+        if answer in ['y', 'yes', 'д', 'да', '+']:
+            call_id_list.delete()
+            session.commit()
+    else:
+        print("Для вашего профиля нет данных в БД")
+
     info['age_from'], info['age_to'] = map(int, input('Введите диапазон возраста для поиска. Например: 22-27').split('-'))
+
     if info.get('city'):
         if input('Искать в городе который указан в профиле?Y/n').lower() in ['n', 'no', 'not', 'н', 'нет', 'не', '-']:
             info['city'] = api.database.getCities(country_id=1, q=input('Введите название города?'))['items'][0]['id']
@@ -219,10 +230,10 @@ def top_photos(uid):
     return result
 
 
-def top_search(number=10):
+def top_search(number=10, **inf):
     print('Вычисляем результат')
     call_id = api.users.get()[0]['id']
-    users_by_score = session.query(User).filter_by(call_id=call_id).order_by(User.score.desc()).all()
+    users_by_score = session.query(User).filter_by(call_id=call_id, city=inf.get("city")).order_by(User.score.desc()).all()
     result = []
     for num, user in enumerate(users_by_score):
         if num == number:
@@ -230,6 +241,7 @@ def top_search(number=10):
         result.append({
             'top': num+1,
             'id': user.id,
+            'link': f'https://vk.com/id{user.id}',
             'score': user.score,
             'top_photos': top_photos(user.id)
         })
@@ -242,9 +254,8 @@ def top_search(number=10):
 
 def main():
     inf = user_info()
-    # print(inf)
     search_exc(**inf)
-    top_search()
+    top_search(**inf)
 
 
 if __name__ == '__main__':
